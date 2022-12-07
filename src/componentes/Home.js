@@ -12,7 +12,7 @@ const Home = () => {
             </h1>
             <Link 
             to={"/Login"}
-            className="block text-center my-5 text-violet-600 uppercase text-sm"
+            className="block text-right my-5 text-violet-600 uppercase text-sm"
             >Inicio de Sesión</Link>
 
         </div>
