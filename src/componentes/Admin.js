@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from './Header';
+import Sidebar from './Sidebar';
+import crud from '../conexiones/crud';
+import swal from 'sweetalert';
 
+const Admin = () => {
 
-const Admin = () => {  
   const navigate = useNavigate();
 
-  useEffect(() =>{
-    const autenticarUsuario = async() =>{
+  useEffect(() => {
+    const autenticarUsuario = async () => {
       const token = localStorage.getItem("token")
       //console.log(token);
       if (!token) {
@@ -16,45 +18,99 @@ const Admin = () => {
       }
     }
     autenticarUsuario();
-  },[navigate]); // []hacen que solo se ejecute una vez el useEffect
-  
-  //solo el useEffect se va ejecutar una vez, al inicio cuando el programa intente llamar el componenete de Admin
+  }, [navigate]); // []hacen que solo se ejecute una vez el useEffect
 
+  const [categoria, setCategorias] = useState([]);
+
+  const cargarCategorias = async () => {
+    const response = await crud.GET(`/api/categoria`);
+    //console.log(response);
+    setCategorias(response.categoria);
+  }
+
+  useEffect(() => {
+    cargarCategorias();
+  }, [])
+
+  const borrarCategoria = async (idCategoria) => {
+
+    swal({
+      title: "Estas seguro de eliminar la categoria??",
+      text: "una vez eliminado, no se podra recuperar esta categoria",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+      .then((willDelete) => {
+        if (willDelete) {
+          const response = crud.DELETE(`/api/categoria/${idCategoria}`);
+          if (response) {
+            swal("Tu Categoria ha sido borrada correctamente", {
+              icon: "success",
+            })
+            cargarCategorias();
+          }
+        } else {
+          swal("Se canceló la acción");
+        }
+      });
+
+  }
 
 
 
   return (
-      /*<main className='container mx-auto mt-5 md:mt-20 p-5 md:flex md:justify-center'>
-         <div className='md:w-2/3 lg:w-2/5'>
-            <h1 className="inline bg-gradient-to-r from-indigo-200 via-violet-700 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
-              Panel de Adiministrador 4
-            </h1>
-            <input 
-                type="submit"
-                value="Cerrar Sesión"
-                className="bg-violet-600 mb-5 w-full py-3 text-white uppercase font-bold rounded hover:cursor-pointer hover:bg-violet-400 transition-colors"
-                onClick={cerrarSesion}
-            />
-        </div>
-      </main>*/
-
-      <>
-      <Header/>
+    <>
+      <Header />
       <div className='md:flex md:min-h-screen'>
-        <Sidebar/>
+        <Sidebar />
         <main className='flex-1'>
-        <h1 className="inline bg-gradient-to-r from-indigo-200 via-violet-700 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
-              Listado de Categorias
-            </h1>
+          <h1 className="inline bg-gradient-to-r from-indigo-200 via-violet-700 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
+            Listado de categorias
+          </h1>
+          <table className="table table-bordered">
+            <thead className='bg-white'>
+              <tr>
+                <th style={{ width: '10%' }}>Imagen</th>
+                <th style={{ width: '75%' }}>Nombre</th>
+                <th style={{ width: '15%' }}>Opciones</th>
+              </tr>
+            </thead>
 
+            <tbody className="bg-white">
+              {
+                categoria.map(
+                  item =>
+                    <tr key={item._id}>
+                      <td><img src={item.imagen}></img></td>
+                      <td>{item.nombre}</td>
+                      <td>
+                        <Link
+                          to={`/home-productos/${item._id}`}
+                        >Visualizar</Link>&nbsp;&nbsp;
+                        <Link
+                          to={`/actualizar-categoria/${item._id}`}
+
+                        >Editar</Link>&nbsp;&nbsp;
+                        <button
+                          onClick={() => borrarCategoria(item._id)}
+                        >Eliminar</button>
+                      </td>
+                    </tr>
+                )
+              }
+            </tbody>
+          </table>
         </main>
       </div>
-      
-      
-      
-      
-      </>
-    );
+
+
+
+
+
+    </>
+  );
 }
+
 
 export default Admin;
